@@ -1,22 +1,7 @@
 function Unit_Summary(xds_morn, xds_noon, unit_name, Save_Figs)
 
-%% Load the excel file
-if ~ischar(unit_name)
-
-    [xds_output] = Find_Excel(xds_morn);
-
-    %% Find the unit of interest
-
-    unit = xds_output.unit_names(unit_name);
-
-    %% Identify the index of the unit
-    N = find(strcmp(xds_morn.unit_names, unit));
-
-end
-
-if ischar(unit_name) && ~strcmp(unit_name, 'All')
-    N = find(strcmp(xds_morn.unit_names, unit_name));
-end
+%% Find the unit of interest
+[N] = Find_Unit(xds_morn, unit_name);
 
 %% Define the figure
 
@@ -41,7 +26,7 @@ unit_sum_fig.Position = [200 50 figure_width figure_height];
 hold on
 
 % Set the common title
-fig_title = strcat('Unit Summary -', {' '}, char(xds_morn.unit_names(N)));
+fig_title = strcat(char(xds_morn.unit_names(N)), {' '}, '- Unit Summary');
 sgtitle(fig_title, 'FontSize', (title_font_size + 5));
 
 %% Plot random 100 morning waverforms

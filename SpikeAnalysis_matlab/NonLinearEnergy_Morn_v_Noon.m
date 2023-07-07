@@ -1,64 +1,44 @@
-function [euc_dis, nonlin_p_val] = NonLinearEnergy_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
+function [peaktopeak_amp, spike_width, wave_p_val] = NonLinearEnergy_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
 
-%% Load the excel file
-if ~ischar(unit_name)
+%% Find the unit of interest
+[N_morn] = Find_Unit(xds_morn, unit_name);
+[N_noon] = Find_Unit(xds_noon, unit_name);
 
-    [xds_output] = Find_Excel(xds_morn);
+% Extracting the spikes of the designated unit
+spikes_morn = xds_morn.spikes{N_morn};
+spikes_noon = xds_noon.spikes{N_noon};
 
-    %% Find the unit of interest
-
-    unit = xds_output.unit_names(unit_name);
-
-    %% Identify the index of the unit
-    N_morn = find(strcmp(xds_morn.unit_names, unit));
-    N_noon = find(strcmp(xds_noon.unit_names, unit));
-
-else
-    N_morn = find(strcmp(xds_morn.unit_names, unit_name));
-    N_noon = find(strcmp(xds_noon.unit_names, unit_name));
-end
-
-%% If The Unit Doesn't Exist
-
+%% Catch possible sources of error
+% If there is no unit of that name
 if isempty(N_morn) || isempty(N_noon)
     fprintf('%s does not exist \n', unit_name);
-    euc_dis = NaN;
-    nonlin_p_val = NaN;
+    peaktopeak_amp = NaN;
+    spike_width = NaN;
+    wave_p_val = NaN;
+    return
+end
+
+% If there are less than 1000 spikes
+spike_limit = 1000;
+if length(spikes_morn) < spike_limit || length(spikes_noon) < spike_limit
+    disp('Too few spikes!')
+    peaktopeak_amp = NaN;
+    spike_width = NaN;
+    wave_p_val = NaN;
     return
 end
 
 %% Some variable extraction & definitions
 
-% Extracting the spike waveforms of the designated unit
-waveforms_morn = xds_morn.spike_waveforms{N_morn};
-waveforms_noon = xds_noon.spike_waveforms{N_noon};
+waveform_length = 1.6; % Time (ms.)
 
-if isfield(xds_morn, 'nonlin_waveforms') == 1
-    % Extracting the nonlinear waveforms of the all units
-    nonlin_waveforms_morn = xds_morn.nonlin_waveforms;
-    nonlin_waveforms_noon = xds_noon.nonlin_waveforms;
-else
-    nonlin_waveforms_morn = zeros(height(waveforms_morn), width(waveforms_morn) - 2);
-    nonlin_waveforms_noon = zeros(height(waveforms_noon), width(waveforms_noon) - 2);
-    % Morning
-    for jj = 1:height(waveforms_morn)
-        for ii = 1:width(waveforms_morn) - 2
-            nonlin_waveforms_morn(jj,ii) = waveforms_morn(jj,ii+1)^2 - ... 
-                waveforms_morn(jj,ii)*waveforms_morn(jj,ii+2);
-        end
-    end
-    % Afternoon
-    for jj = 1:height(waveforms_noon)
-        for ii = 1:width(waveforms_noon) - 2
-            nonlin_waveforms_noon(jj,ii) = waveforms_noon(jj,ii+1)^2 - ... 
-                waveforms_noon(jj,ii)*waveforms_noon(jj,ii+2);
-        end
-    end
-end
+% Extracting the nonlinear waveforms of the all units
+waveforms_morn = xds_morn.nonlin_waveforms{N_morn};
+waveforms_noon = xds_noon.nonlin_waveforms{N_noon};
 
 % Extracting the spike times of the designated unit
-morn_spikes = xds_morn.spikes{N_morn};
-noon_spikes = xds_noon.spikes{N_noon};
+spike_times_morn = xds_morn.spikes{N_morn};
+spike_times_noon = xds_noon.spikes{N_noon};
 
 % Font specifications
 label_font_size = 18;
@@ -68,88 +48,53 @@ font_name = 'Arial';
 
 %% Calculating the means & standard deviations
 
-% Nonlinear waveform means
-if isfield(xds_morn, 'nonlin_waveforms') == 1
-    morn_nonlin_mean = mean(nonlin_waveforms_morn{N_morn},1);
-    noon_nonlin_mean = mean(nonlin_waveforms_noon{N_noon},1);
-    morn_perspike_nonlin = mean(nonlin_waveforms_morn{N_morn}, 2);
-    noon_perspike_nonlin = mean(nonlin_waveforms_noon{N_noon}, 2);
-else
-    morn_nonlin_mean = mean(nonlin_waveforms_morn,1);
-    noon_nonlin_mean = mean(nonlin_waveforms_noon,1);
-    morn_perspike_nonlin = mean(nonlin_waveforms_morn, 2);
-    noon_perspike_nonlin = mean(nonlin_waveforms_noon, 2);
-end
+% Calculating the means
+%morn_amp_mean = mean(waveforms_morn,1);
+%noon_amp_mean = mean(waveforms_noon,1);
+mean_amp = mean([waveforms_morn; waveforms_noon], 1);
+morn_perspike_amp = mean(waveforms_morn, 2);
+noon_perspike_amp = mean(waveforms_noon, 2);
 
 % Calculate the Euclidean distance
-euc_dis = sqrt(sum((morn_nonlin_mean - noon_nonlin_mean) .^2));
+%euc_dis = sqrt(sum((morn_amp_mean - noon_amp_mean) .^2));
 
-%% Find the change in mean nonlinear energy between the two sessions 
+%% Find the change in mean amplitude between the two sessions 
 % Finding the mean & difference between morning & afternoon
-nonlin_morn = mean(morn_perspike_nonlin);
-nonlin_noon = mean(noon_perspike_nonlin);
-std_nonlin_morn = std(morn_perspike_nonlin);
-std_nonlin_noon = std(noon_perspike_nonlin);
+amp_morn = mean(morn_perspike_amp);
+amp_noon = mean(noon_perspike_amp);
+std_amp_morn = std(morn_perspike_amp);
+std_amp_noon = std(noon_perspike_amp);
 
-% Finding the difference
-nonlin_difference = abs(nonlin_morn - nonlin_noon);
+%% Calculate the peak to peak amplitude & spike width
+waveform_crest = max(mean_amp);
+crest_idx = find(mean_amp == waveform_crest);
+waveform_trough = min(mean_amp);
+trough_idx = find(mean_amp == waveform_trough);
 
-%% Find the average nonlinear energy across all units
-if isfield(xds_morn, 'nonlin_waveforms') == 1
-    % The means of each nonlinear waveform
-    all_units_nonlin_morn = struct([]);
-    all_units_nonlin_noon = struct([]);
-    for ii = 1:length(xds_morn.unit_names)
-        all_units_nonlin_morn{ii,1} = mean(nonlin_waveforms_morn{ii});
-    end
-    for ii = 1:length(xds_noon.unit_names)
-        all_units_nonlin_noon{ii,1} = mean(nonlin_waveforms_noon{ii});
-    end
+% Peak to peak amplitudes
+peaktopeak_amp = abs(waveform_crest) + abs(waveform_trough);
 
-    % The mean of every point in the mean of the nonlinear waveforms
-    all_units_nonlin_means_morn = zeros(length(xds_morn.unit_names),1);
-    all_units_nonlin_means_noon = zeros(length(xds_noon.unit_names),1);
-    for ii = 1:length(xds_morn.unit_names)
-        all_units_nonlin_means_morn(ii) = mean((all_units_nonlin_morn{ii,1}));
-    end
-    for ii = 1:length(xds_noon.unit_names)
-        all_units_nonlin_means_noon(ii) = mean((all_units_nonlin_noon{ii,1}));
-    end
+% Length of each bin
+bin_size = waveform_length/(length(mean_amp) + 2); % Time (ms.) 
 
-    % Find the differences between morning & afternoon
-    all_units_nonlin_difference = abs(all_units_nonlin_means_morn - all_units_nonlin_means_noon);
-end
+% Spike width
+spike_width = (crest_idx - trough_idx)*bin_size; % Time (ms.) 
 
-%% Determine if the unit is well sorted 
+%% Determine if the unit is stable
 % Pick a random 1000 threshold crossings 1000 times
 loop_size = 1000;
 p_val_idx = zeros(loop_size,1);
 for ii = 1:loop_size
     % Morning
-    rand_morn_nonlin_idx = randperm(size(morn_perspike_nonlin,1), 50);
-    rand_morn_perspike_nonlin = morn_perspike_nonlin(rand_morn_nonlin_idx);
+    rand_morn_idx = randperm(size(morn_perspike_amp,1), 50);
+    rand_morn_perspike = morn_perspike_amp(rand_morn_idx);
     % Afternoon
-    rand_noon_nonlin_idx = randperm(size(noon_perspike_nonlin,1), 50);
-    rand_noon_perspike_nonlin = noon_perspike_nonlin(rand_noon_nonlin_idx);
-    [~, nonlin_p_val] = ttest2(rand_morn_perspike_nonlin, rand_noon_perspike_nonlin);
-    p_val_idx(ii) = nonlin_p_val;
+    rand_noon_idx = randperm(size(noon_perspike_amp,1), 50);
+    rand_noon_perspike = noon_perspike_amp(rand_noon_idx);
+    [~, wave_p_val] = ttest2(rand_morn_perspike, rand_noon_perspike);
+    p_val_idx(ii) = wave_p_val;
 end
-nonlin_p_val = mean(p_val_idx);
-
-%% Determine if the change in nonlinear energy is more or less than the average change
-if isfield(xds_morn, 'nonlin_waveforms') == 1
-    mean_nonlin_difference = mean(all_units_nonlin_difference);
-
-    if nonlin_difference < mean_nonlin_difference
-        fprintf("The change in mean nonlinear energy of %s is less than the mean of all units \n", ...
-            string(xds_morn.unit_names{N_morn}));
-    end
-
-    if nonlin_difference > mean_nonlin_difference
-        fprintf("The change in mean nonlinear energy of %s is greater than the mean of all units \n", ...
-            string(xds_morn.unit_names{N_morn}));
-    end
-end
+wave_p_val = mean(p_val_idx);
 
 %% Plotting
 
@@ -158,8 +103,8 @@ if isequal(Plot_Figs, 1)
     %% Plot the morning & afternoon histograms
     figure
     hold on
-    histogram(morn_perspike_nonlin, 'EdgeColor', 'k', 'FaceColor', [0.9290, 0.6940, 0.1250])
-    histogram(noon_perspike_nonlin, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
+    histogram(morn_perspike_amp, 'EdgeColor', 'k', 'FaceColor', [0.9290, 0.6940, 0.1250])
+    histogram(noon_perspike_amp, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
     title(sprintf('Nonlinear Energy Histogram - %s', ... 
         char(xds_morn.unit_names(N_morn))), 'FontSize', title_font_size)
     xlabel('Mean Nonlinear Energy', 'FontSize', label_font_size)
@@ -178,9 +123,9 @@ if isequal(Plot_Figs, 1)
     legend boxoff
 
     % Annotation of the p_value
-    if round(nonlin_p_val, 3) > 0
+    if round(wave_p_val, 3) > 0
         legend_dims = [0.525 0.325 0.44 0.44];
-        p_value_string = strcat('p =', {' '}, mat2str(round(nonlin_p_val, 3)));
+        p_value_string = strcat('p =', {' '}, mat2str(round(wave_p_val, 3)));
         legend_string = {char(p_value_string)};
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
             'FitBoxToText', 'on', 'verticalalignment', 'top', ...
@@ -189,7 +134,7 @@ if isequal(Plot_Figs, 1)
         ann_legend.FontName = font_name;
     end
 
-        if isequal(round(nonlin_p_val, 3), 0)
+        if isequal(round(wave_p_val, 3), 0)
             legend_dims = [0.525 0.325 0.44 0.44];
             p_value_string = strcat('p <', {' '}, '0.001');
             legend_string = {char(p_value_string)};
@@ -201,8 +146,8 @@ if isequal(Plot_Figs, 1)
         end
 
     % Reset the axis limits
-    xlim([x_limits(1),x_limits(2)])
-    ylim([y_limits(1),y_limits(2) + 1])
+    xlim([x_limits(1), x_limits(2)])
+    ylim([y_limits(1), y_limits(2) + 1])
 
     % Only label every other tick
     figure_axes = gca;
@@ -222,14 +167,14 @@ if isequal(Plot_Figs, 1)
     %% Calculate the per-spike nonlinear energy
 
     % Convert time into minutes
-    spike_min_morn = morn_spikes / 60;
-    spike_min_noon = noon_spikes / 60;
+    spike_min_morn = spike_times_morn / 60;
+    spike_min_noon = spike_times_noon / 60;
 
     % Find the axis limits
-    morn_ymax = nonlin_morn + 4*std_nonlin_morn;
-    morn_ymin = nonlin_morn - 4*std_nonlin_morn;
-    noon_ymax = nonlin_noon + 4*std_nonlin_noon;
-    noon_ymin = nonlin_noon - 4*std_nonlin_noon;
+    morn_ymax = amp_morn + 4*std_amp_morn;
+    morn_ymin = amp_morn - 4*std_amp_morn;
+    noon_ymax = amp_noon + 4*std_amp_noon;
+    noon_ymin = amp_noon - 4*std_amp_noon;
     morn_xmax = max(spike_min_morn);
     noon_xmax = max(spike_min_noon);
     axis_limits = cat(1, morn_ymax, morn_ymin, noon_ymax, noon_ymin);
@@ -244,16 +189,16 @@ if isequal(Plot_Figs, 1)
     % Morning
     morn_nonlin_plot = subplot(121); % (Top Left Plot)
     hold on
-    scatter(spike_min_morn, morn_perspike_nonlin, sz, 'MarkerEdgeColor', 'k',...
+    scatter(spike_min_morn, morn_perspike_amp, sz, 'MarkerEdgeColor', 'k',...
             'MarkerFaceColor', 'k');
     % Lines indicating the morning mean
-    line([0 max(spike_min_morn)],[nonlin_morn nonlin_morn], ... 
+    line([0 max(spike_min_morn)],[amp_morn amp_morn], ... 
         'Color', 'red', 'LineWidth',1);
     % Lines indicating the morning standard deviation
-    line([0 max(spike_min_morn)], [nonlin_morn + std_nonlin_morn, nonlin_morn + std_nonlin_morn], ...
-        'Color', 'red', 'LineStyle','--', 'LineWidth',1);
-    line([0 max(spike_min_morn)], [nonlin_morn - std_nonlin_morn, nonlin_morn - std_nonlin_morn], ...
-        'Color', 'red', 'LineStyle','--', 'LineWidth',1);
+    line([0 max(spike_min_morn)], [amp_morn + std_amp_morn, amp_morn + std_amp_morn], ...
+        'Color', 'red', 'LineStyle','--', 'LineWidth', 1);
+    line([0 max(spike_min_morn)], [amp_morn - std_amp_morn, amp_morn - std_amp_morn], ...
+        'Color', 'red', 'LineStyle','--', 'LineWidth', 1);
 
     % Setting the morning axis limits
     ylim([min_YLim, max_YLim])
@@ -286,15 +231,15 @@ if isequal(Plot_Figs, 1)
 
     % Afternoon
     noon_nonlin_plot = subplot(122); % (Top Right Plot)
-    scatter(spike_min_noon, noon_perspike_nonlin, sz, 'MarkerEdgeColor', 'k',...
+    scatter(spike_min_noon, noon_perspike_amp, sz, 'MarkerEdgeColor', 'k',...
             'MarkerFaceColor', 'k');
     % Lines indicating the afternoon mean
-    line([min(spike_min_noon) max(spike_min_noon)],[nonlin_noon nonlin_noon], ... 
+    line([min(spike_min_noon) max(spike_min_noon)],[amp_noon amp_noon], ... 
         'Color', 'red', 'LineWidth',1);
     % Lines indicating the afternoon standard deviation
-    line([min(spike_min_noon) max(spike_min_noon)], [nonlin_noon + std_nonlin_noon, nonlin_noon + std_nonlin_noon], ...
+    line([min(spike_min_noon) max(spike_min_noon)], [amp_noon + std_amp_noon, amp_noon + std_amp_noon], ...
         'Color', 'red', 'LineStyle','--', 'LineWidth',1);
-    line([min(spike_min_noon) max(spike_min_noon)], [nonlin_noon - std_nonlin_noon, nonlin_noon - std_nonlin_noon], ...
+    line([min(spike_min_noon) max(spike_min_noon)], [amp_noon - std_amp_noon, amp_noon - std_amp_noon], ...
         'Color', 'red', 'LineStyle','--', 'LineWidth',1);
 
     % Setting the afternoon axis limits
@@ -325,9 +270,9 @@ if isequal(Plot_Figs, 1)
     xlabel('Afternoon', 'FontSize', label_font_size)
 
     % Annotation of the p_value
-    if round(nonlin_p_val, 3) > 0
+    if round(wave_p_val, 3) > 0
         legend_dims = [0.65 0.525 0.44 0.44];
-        p_value_string = strcat('p =', {' '}, mat2str(round(nonlin_p_val, 3)));
+        p_value_string = strcat('p =', {' '}, mat2str(round(wave_p_val, 3)));
         legend_string = {char(p_value_string)};
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
@@ -336,7 +281,7 @@ if isequal(Plot_Figs, 1)
         ann_legend.FontName = font_name;
     end
 
-    if isequal(round(nonlin_p_val, 3), 0)
+    if isequal(round(wave_p_val, 3), 0)
         legend_dims = [0.65 0.525 0.44 0.44];
         p_value_string = strcat('p <', {' '}, '0.001');
         legend_string = {char(p_value_string)};

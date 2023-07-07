@@ -1,25 +1,24 @@
 function [euc_dis, nonlin_p_val] = NonLinearEnergy(xds, unit_name, Plot_Figs, Save_Figs)
 
-%% Load the excel file
-if ~ischar(unit_name)
+%% Find the unit of interest
+[N] = Find_Unit(xds, unit_name);
 
-    [xds_output] = Find_Excel(xds);
+% Extracting the spikes of the designated unit
+spikes = xds.spikes{N};
 
-    %% Find the unit of interest
-
-    unit = xds_output.unit_names(unit_name);
-
-    %% Identify the index of the unit
-    N = find(strcmp(xds.unit_names, unit));
-
-else
-    N = find(strcmp(xds.unit_names, unit_name));
-end
-
-%% If The Unit Doesn't Exist
-
+%% Catch possible sources of error
+% If there is no unit of that name
 if isempty(N)
     fprintf('%s does not exist \n', unit_name);
+    euc_dis = NaN;
+    nonlin_p_val = NaN;
+    return
+end
+
+% If there are less than 1000 spikes
+spike_limit = 1000;
+if length(spikes) < spike_limit
+    disp('Too few spikes!')
     euc_dis = NaN;
     nonlin_p_val = NaN;
     return
@@ -30,18 +29,8 @@ end
 % Extracting the spike waveforms of the designated unit
 waveforms = xds.spike_waveforms{N};
 
-if isfield(xds, 'nonlin_waveforms') == 1
-    % Extracting the nonlinear waveforms of the all units
-    nonlin_waveforms = xds.nonlin_waveforms{N};
-else
-    nonlin_waveforms = zeros(height(waveforms), width(waveforms) - 2);
-    for jj = 1:height(waveforms)
-        for ii = 1:width(waveforms) - 2
-            nonlin_waveforms(jj,ii) = waveforms(jj,ii+1)^2 - ... 
-                waveforms(jj,ii)*waveforms(jj,ii+2);
-        end
-    end
-end
+% Extracting the nonlinear waveforms of the all units
+nonlin_waveforms = xds.nonlin_waveforms{N};
 
 % Extracting the spike times of the designated unit
 spike_times = xds.spikes{N};
@@ -82,24 +71,10 @@ loop_size = 1000;
 p_val_idx = zeros(loop_size,1);
 for ii = 1:loop_size
     % First quarter
-    try
-        rand_start_nonlin_idx = randperm(size(start_perspike_nonlin,1), 50);
-    catch
-        disp('Too few spikes!')
-        euc_dis = NaN;
-        nonlin_p_val = NaN;
-        return
-    end
+    rand_start_nonlin_idx = randperm(size(start_perspike_nonlin,1), 50);
     rand_start_perspike_nonlin = start_perspike_nonlin(rand_start_nonlin_idx);
     % Last quarter
-    try
-        rand_end_nonlin_idx = randperm(size(end_perspike_nonlin,1), 50);
-    catch
-        disp('Too few spikes!')
-        euc_dis = NaN;
-        nonlin_p_val = NaN;
-        return
-    end
+    rand_end_nonlin_idx = randperm(size(end_perspike_nonlin,1), 50);
     rand_end_perspike_nonlin = end_perspike_nonlin(rand_end_nonlin_idx);
     [~, nonlin_p_val] = ttest2(rand_start_perspike_nonlin, rand_end_perspike_nonlin);
     p_val_idx(ii) = nonlin_p_val;

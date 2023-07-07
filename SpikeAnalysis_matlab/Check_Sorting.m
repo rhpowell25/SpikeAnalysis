@@ -3,7 +3,7 @@ function Check_Sorting(xds_sorted, xds_unsorted, unit_name, Save_Figs)
 %% What do you want plotted?
 % 'PC1', 'PC2', 'PC3', 'Nonlin', or 'Time'
 x_plot = 'PC1';
-y_plot = 'PC2';
+y_plot = 'Nonlin';
 
 % Do you want to check your sorting or k-means clustering? ('Sort' or 'K_Means')
 Sort_Check = 'Sort';
@@ -18,12 +18,12 @@ file_name = xds_sorted.meta.rawFileName;
 xtra_info = extractAfter(file_name, '_');
 Date = erase(file_name, strcat('_', xtra_info));
 
+% Find the unit of interest
+[N] = Find_Unit(xds_unsorted, unit_name);
 if ~ischar(unit_name)
     % Identify the index of the unit
-    N = unit_name;
     current_unit = strcat(xds_unsorted.unit_names(N), '_');
 else
-    N = find(strcmp(xds_unsorted.unit_names, unit_name));
     current_unit = strcat(unit_name, '_');
 end
 

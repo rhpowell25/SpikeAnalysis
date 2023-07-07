@@ -1,31 +1,34 @@
-function [euc_dis, wave_p_val] = WaveShapes(xds, unit_name, Plot_Figs, Save_Figs)
+function [peaktopeak_amp, euc_dis, wave_p_val] = WaveShapes(xds, unit_name, Plot_Figs, Save_Figs)
 
-%% Load the excel file
-if ~ischar(unit_name)
+%% Find the unit of interest
+[N] = Find_Unit(xds, unit_name);
 
-    [xds_output] = Find_Excel(xds);
+% Extracting the spikes of the designated unit
+spikes = xds.spikes{N};
 
-    %% Find the unit of interest
-
-    unit = xds_output.unit_names(unit_name);
-
-    %% Identify the index of the unit
-    N = find(strcmp(xds.unit_names, unit));
-
-else
-    N = find(strcmp(xds.unit_names, unit_name));
-end
-
-%% If The Unit Doesn't Exist
-
+%% Catch possible sources of error
+% If there is no unit of that name
 if isempty(N)
     fprintf('%s does not exist \n', unit_name);
+    peaktopeak_amp = NaN;
+    euc_dis = NaN;
+    wave_p_val = NaN;
+    return
+end
+
+% If there are less than 1000 spikes
+spike_limit = 1000;
+if length(spikes) < spike_limit
+    disp('Too few spikes!')
+    peaktopeak_amp = NaN;
     euc_dis = NaN;
     wave_p_val = NaN;
     return
 end
 
 %% Some variable extraction & definitions
+
+waveform_length = 1.6; % Time (ms.) 
 
 % Extracting the waveforms of the designated unit
 unit_waveforms = xds.spike_waveforms{N};
@@ -47,7 +50,7 @@ first_quarter_crossings = length(find(spike_times <= xds.time_frame(end)/4));
 last_quarter_crossings = length(find(spike_times >= 3*xds.time_frame(end)/4));
 
 % Calculating the means
-amp_mean = mean(unit_waveforms, 1);
+mean_amp = mean(unit_waveforms, 1);
 start_amp_mean = mean(unit_waveforms(1:first_quarter_crossings,:), 1);
 end_amp_mean = mean(unit_waveforms(last_quarter_crossings:end,:), 1);
 
@@ -67,11 +70,15 @@ amp_mean_mean = mean(perspike_amp);
 std_amp = std(perspike_amp);
 
 %% Calculate the peak to peak amplitudes
-waveform_crest = max(amp_mean);
-waveform_trough = min(amp_mean);
+waveform_crest = max(mean_amp);
+waveform_trough = min(mean_amp);
 
 % Peak to peak amplitudes
 peaktopeak_amp = abs(waveform_crest) + abs(waveform_trough);
+
+% Length of each bin
+bin_size = waveform_length/length(mean_amp); % Time (ms.)
+spike_time = (-(10*bin_size):bin_size:waveform_length - bin_size - (10*bin_size));
 
 %% Determine if the unit is stable
 % Pick a random 50 threshold crossings 1000 times
@@ -114,7 +121,7 @@ if isequal(Plot_Figs, 1)
     rand_figure = figure;
     rand_figure.Position = [300 300 figure_width figure_height];
     hold on
-    plot(rand_waves', 'k')
+    plot(spike_time, rand_waves', 'k')
 
     % Set the title
     rand_title = strcat('Individual Waveforms -', {' '}, char(xds.unit_names(N)));
@@ -127,7 +134,7 @@ if isequal(Plot_Figs, 1)
     title(rand_title, 'FontSize', title_font_size)
 
     % Axis Labels
-    xlabel('Time', 'FontSize', label_font_size)
+    xlabel('Time (ms)', 'FontSize', label_font_size)
     ylabel('Amplitude (µV)', 'FontSize', label_font_size)
 
     % Annotation of the n-count
@@ -160,9 +167,9 @@ if isequal(Plot_Figs, 1)
     avg_figure = figure;
     avg_figure.Position = [300 300 figure_width figure_height];
     hold on
-    plot(amp_mean,'k')
-    plot(amp_mean + standard_dev,'r')
-    plot(amp_mean - standard_dev,'r')
+    plot(spike_time, mean_amp,'k')
+    plot(spike_time, mean_amp + standard_dev,'r')
+    plot(spike_time, mean_amp - standard_dev,'r')
 
     % Set the title
     avg_title = strcat('Average Waveform -', {' '}, char(xds.unit_names(N)));
@@ -175,7 +182,7 @@ if isequal(Plot_Figs, 1)
     title(avg_title, 'FontSize', title_font_size)
 
     % Axis Labels
-    xlabel('Time', 'FontSize', label_font_size)
+    xlabel('Time (ms)', 'FontSize', label_font_size)
     ylabel('Amplitude (µV)', 'FontSize', label_font_size)
     
     % Only label every other tick

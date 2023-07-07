@@ -1,37 +1,42 @@
-function [euc_dis, wave_p_val] = WaveShapes_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
+function [peaktopeak_amp, spike_width, repol_time, wave_p_val] = WaveShapes_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
 
-%% Load the excel file
-if ~ischar(unit_name)
+%% Find the unit of interest
+[N_morn] = Find_Unit(xds_morn, unit_name);
+[N_noon] = Find_Unit(xds_noon, unit_name);
 
-    [xds_output] = Find_Excel(xds_morn);
+% Extracting the spikes of the designated unit
+spikes_morn = xds_morn.spikes{N_morn};
+spikes_noon = xds_noon.spikes{N_noon};
 
-    %% Find the unit of interest
-
-    unit = xds_output.unit_names(unit_name);
-
-    %% Identify the index of the unit
-    N_morn = find(strcmp(xds_morn.unit_names, unit));
-    N_noon = find(strcmp(xds_noon.unit_names, unit));
-
-else
-    N_morn = find(strcmp(xds_morn.unit_names, unit_name));
-    N_noon = find(strcmp(xds_noon.unit_names, unit_name));
-end
-
-%% If The Unit Doesn't Exist
-
+%% Catch possible sources of error
+% If there is no unit of that name
 if isempty(N_morn) || isempty(N_noon)
     fprintf('%s does not exist \n', unit_name);
-    euc_dis = NaN;
+    peaktopeak_amp = NaN;
+    spike_width = NaN;
+    repol_time = NaN;
+    wave_p_val = NaN;
+    return
+end
+
+% If there are less than 1000 spikes
+spike_limit = 1000;
+if length(spikes_morn) < spike_limit || length(spikes_noon) < spike_limit
+    disp('Too few spikes!')
+    peaktopeak_amp = NaN;
+    spike_width = NaN;
+    repol_time = NaN;
     wave_p_val = NaN;
     return
 end
 
 %% Some variable extraction & definitions
 
+waveform_length = 1.6; % Time (ms.) 
+
 % Extracting the waveforms of the designated unit
-waveforms_morn = xds_morn.spike_waveforms;
-waveforms_noon = xds_noon.spike_waveforms;
+waveforms_morn = xds_morn.spike_waveforms{N_morn};
+waveforms_noon = xds_noon.spike_waveforms{N_noon};
 
 % Extracting the spike times of the designated unit
 spike_times_morn = xds_morn.spikes{N_morn};
@@ -46,102 +51,57 @@ font_name = 'Arial';
 %% Calculating the means and standard deviations
 
 % Calculating the means
-morn_amp_mean = mean(waveforms_morn{N_morn}, 1);
-noon_amp_mean = mean(waveforms_noon{N_noon}, 1);
-morn_perspike_amp = mean(waveforms_morn{N_morn}, 2);
-noon_perspike_amp = mean(waveforms_noon{N_noon}, 2);
+%morn_amp_mean = mean(waveforms_morn, 1);
+%noon_amp_mean = mean(waveforms_noon, 1);
+mean_amp = mean([waveforms_morn; waveforms_noon], 1);
+morn_perspike_amp = mean(waveforms_morn, 2);
+noon_perspike_amp = mean(waveforms_noon, 2);
 
 % Calculate the Euclidean distance
-euc_dis = sqrt(sum((morn_amp_mean - noon_amp_mean) .^2));
+%euc_dis = sqrt(sum((morn_amp_mean - noon_amp_mean) .^2));
 
 %% Find the change in mean amplitude between the two sessions
-% Finding the mean and difference between morning and afternoon
+% Finding the mean and difference between morning & afternoon
 amp_morn = mean(morn_perspike_amp);
 amp_noon = mean(noon_perspike_amp);
 std_amp_morn = std(morn_perspike_amp);
 std_amp_noon = std(noon_perspike_amp);
 
-% Finding the difference
-amp_difference = abs(amp_morn - amp_noon);
-
-%% Calculate the peak to peak amplitudes
-% Morning
-crest_morn = max(morn_amp_mean);
-trough_morn = min(morn_amp_mean);
-% Afternoon
-crest_noon = max(noon_amp_mean);
-trough_noon = min(noon_amp_mean);
+%% Calculate the peak to peak amplitude & spike width
+waveform_crest = max(mean_amp);
+crest_idx = find(mean_amp == waveform_crest);
+waveform_trough = min(mean_amp);
+trough_idx = find(mean_amp == waveform_trough);
 
 % Peak to peak amplitudes
-peaktopeak_morn = abs(crest_morn) + abs(trough_morn);
-peaktopeak_noon = abs(crest_noon) + abs(trough_noon);
+peaktopeak_amp = abs(waveform_crest) + abs(waveform_trough);
 
-%% Finding the average amplitude across all units
-% The means of each waveform
-all_units_amp_morn = struct([]);
-all_units_amp_noon = struct([]);
-for ii = 1:length(xds_morn.unit_names)
-    all_units_amp_morn{ii,1} = mean(waveforms_morn{ii});
-end
-for ii = 1:length(xds_noon.unit_names)
-    all_units_amp_noon{ii,1} = mean(waveforms_noon{ii});
-end
+% Length of each bin
+bin_size = waveform_length/length(mean_amp); % Time (ms.)
 
-% The mean of every point in the mean of the waveforms
-all_units_amp_means_morn = zeros(length(xds_morn.unit_names),1);
-all_units_amp_means_noon = zeros(length(xds_noon.unit_names),1);
-for ii = 1:length(xds_morn.unit_names)
-    all_units_amp_means_morn(ii) = mean((all_units_amp_morn{ii,1}));
-end
-for ii = 1:length(xds_noon.unit_names)
-    all_units_amp_means_noon(ii) = mean((all_units_amp_noon{ii,1}));
-end
+% Spike width
+spike_width = (crest_idx - trough_idx)*bin_size; % Time (ms.)
 
-% Find the differences between morning and afternoon
-all_units_amp_difference = abs(all_units_amp_means_morn - all_units_amp_means_noon);
+% Repolarization time
+detrend_amp = detrend(mean_amp(crest_idx:end),1);
+deriv_amp = gradient(detrend_amp) ./ gradient(crest_idx:length(mean_amp));
+inflection_idx = round(interp1(deriv_amp, (crest_idx:length(mean_amp)), 0));
+repol_time = (inflection_idx - crest_idx)*bin_size;
 
 %% Determine if the unit is stable
 % Pick a random 50 threshold crossings 1000 times
 p_val_idx = zeros(1000,1);
 for ii = 1:1000
     % Morning
-    try
-        rand_morn_idx = randperm(size(morn_perspike_amp,1), 50);
-    catch
-        disp('Too few spikes!')
-        euc_dis = NaN;
-        wave_p_val = NaN;
-        return
-    end
+    rand_morn_idx = randperm(size(morn_perspike_amp,1), 50);
     rand_morn_perspike = morn_perspike_amp(rand_morn_idx);
     % Afternoon
-    try
-        rand_noon_idx = randperm(size(noon_perspike_amp,1), 50);
-    catch
-        disp('Too few spikes!')
-        euc_dis = NaN;
-        wave_p_val = NaN;
-        return
-    end
+    rand_noon_idx = randperm(size(noon_perspike_amp,1), 50);
     rand_noon_perspike = noon_perspike_amp(rand_noon_idx);
     [~, wave_p_val] = ttest2(rand_morn_perspike, rand_noon_perspike);
     p_val_idx(ii) = wave_p_val;
 end
 wave_p_val = mean(p_val_idx);
-
-%% Determine if the change in mean amplitude is more or less than the average change
-
-mean_amp_difference = mean(all_units_amp_difference);
-
-if amp_difference < mean_amp_difference
-    fprintf("The change in waveform amplitude of %s is less than the mean of all units \n", ...
-        string(xds_morn.unit_names{N_morn}));
-end
-
-if amp_difference > mean_amp_difference
-        fprintf("The change in waveform amplitude of %s is greater than the mean of all units \n", ...
-        string(xds_morn.unit_names{N_morn}));
-end
 
 %% Plotting 
 
@@ -349,14 +309,6 @@ if isequal(Plot_Figs, 1)
     common_x_label.Position(2) = common_x_label.Position(2) + 0.5;
 
 end
-
-%% Print the peak to peak amplitudes
-% Morning
-fprintf("The average peak to peak amplitude of %s is %0.1f µV in the morning \n", ...
-string(xds_morn.unit_names{N_morn}), peaktopeak_morn);
-% Afternoon
-fprintf("The average peak to peak amplitude of %s is %0.1f µV in the afternoon \n", ...
-string(xds_noon.unit_names{N_noon}), peaktopeak_noon);
 
 %% Figure Saving
 if ~isequal(Save_Figs, 0)
