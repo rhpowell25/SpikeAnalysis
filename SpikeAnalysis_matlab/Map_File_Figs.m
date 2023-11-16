@@ -1,4 +1,4 @@
-function Map_File_Figs(xds, Plot_Specs, Save_Figs)
+function Map_File_Figs(xds, Plot_Specs, Save_File)
 
 %% Find & load the map file
 Monkey = xds.meta.monkey;
@@ -54,14 +54,14 @@ map_figure = figure;
 map_figure.Position = [150 150 figure_width figure_height];
 
 % Set the title
-save_title = strcat(Date, '_', Monkey, '_', Plot_Specs);
+Fig_Title = strcat(Date, '_', Monkey, '_', Plot_Specs);
 if contains(xds.meta.rawFileName, 'Pre')
-    save_title = strcat(save_title, '_morn');
+    Fig_Title = strcat(Fig_Title, '_morn');
 end
 if contains(xds.meta.rawFileName, 'Post')
-    save_title = strcat(save_title, '_noon');
+    Fig_Title = strcat(Fig_Title, '_noon');
 end
-sgtitle(save_title, 'Interpreter', 'None')
+sgtitle(Fig_Title, 'Interpreter', 'None')
 
 % If you're making the colormap
 if strcmp(Plot_Specs, 'Colormap')
@@ -215,21 +215,9 @@ for uu = 1:length(unit_names)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
 
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for uu = numel(findobj('type','figure')):-1:1
-        set(gcf, 'InvertHardcopy', 'off');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
+

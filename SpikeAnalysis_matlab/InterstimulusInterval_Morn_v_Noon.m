@@ -1,4 +1,5 @@
-function [merged_fract_contam, ISI_modes] = InterstimulusInterval_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
+function [merged_fract_contam, ISI_modes] = ...
+    InterstimulusInterval_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_File)
 
 %% Find the unit of interest
 [N_morn] = Find_Unit(xds_morn, unit_name);
@@ -36,11 +37,6 @@ label_font_size = 20;
 title_font_size = 15;
 legend_font_size = 15;
 font_name = 'Arial';
-
-if ~isequal(Save_Figs, 0)
-    % Do you want a save title or blank title (1 = save_title, 0 = blank)
-    Fig_Save_Title = 0;
-end
 
 %% Some variable extraction & definitions
 
@@ -124,8 +120,9 @@ if isequal(Plot_Figs, 1)
     histogram(ISI_morn, ISI_edges, 'EdgeColor', 'k', 'FaceColor', [0.9290, 0.6940, 0.1250])
     histogram(ISI_noon, ISI_edges, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
     % Set the title
-    title(sprintf('Interstimulus Intervals - %s (Merged)', ... 
-        char(xds_morn.unit_names(N_morn))), 'FontSize', title_font_size)
+    Fig_Title = sprintf('Interstimulus Intervals - %s (Merged)', ... 
+        char(xds_morn.unit_names(N_morn)));
+    title(Fig_Title, 'FontSize', title_font_size)
     xlabel('ISI (mSec)', 'FontSize', label_font_size)
     ylabel('Counts', 'FontSize', label_font_size)
 
@@ -182,6 +179,9 @@ if isequal(Plot_Figs, 1)
     % Set The Font
     set(figure_axes,'fontname', font_name);
 
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
+
 end
 
 %% Print the percentages & fractional contamination
@@ -201,35 +201,6 @@ if isreal(fract_contam)
         min(fract_contam), string(xds_noon.unit_names{N_noon}));
     merged_fract_contam = double(min(fract_contam));
 end
-
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        fig_info = get(gca,'title');
-        fig_title = get(fig_info, 'string');
-        fig_title = strrep(fig_title, ':', '');
-        fig_title = strrep(fig_title, 'vs.', 'vs');
-        fig_title = strrep(fig_title, 'mg.', 'mg');
-        fig_title = strrep(fig_title, 'kg.', 'kg');
-        fig_title = strrep(fig_title, '.', '_');
-        fig_title = strrep(fig_title, '/', '_');
-        if isequal(Fig_Save_Title, 0)
-            title '';
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'fig')
-        else
-            saveas(gcf, fullfile(save_dir, char(fig_title)), Save_Figs)
-        end
-        close gcf
-    end
-end
-
-
-
 
 
 

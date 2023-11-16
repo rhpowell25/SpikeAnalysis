@@ -1,4 +1,5 @@
-function [peaktopeak_amp, spike_width, repol_time, wave_p_val] = WaveShapes_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_Figs)
+function [peaktopeak_amp, spike_width, repol_time, wave_p_val] = ...
+    WaveShapes_Morn_v_Noon(xds_morn, xds_noon, unit_name, Plot_Figs, Save_File)
 
 %% Find the unit of interest
 [N_morn] = Find_Unit(xds_morn, unit_name);
@@ -112,8 +113,9 @@ if isequal(Plot_Figs, 1)
     hold on
     histogram(morn_perspike_amp, 'EdgeColor', 'k', 'FaceColor', [0.9290, 0.6940, 0.1250])
     histogram(noon_perspike_amp, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
-    title(sprintf('Average Amplitude Histogram - %s', ... 
-        char(xds_morn.unit_names(N_morn))), 'FontSize', title_font_size)
+    Fig_Title = sprintf('Average Amplitude Histogram - %s', ... 
+        char(xds_morn.unit_names(N_morn)));
+    title(Fig_Title, 'FontSize', title_font_size)
     xlabel('Mean Waveform Amplitude', 'FontSize', label_font_size)
     ylabel('Counts', 'FontSize', label_font_size)
 
@@ -300,7 +302,7 @@ if isequal(Plot_Figs, 1)
     end
 
     % Set the common title
-    sgt = sgtitle(sprintf('Mean Waveform Amplitude - %s', ...
+    sgtitle(sprintf('Mean Waveform Amplitude - %s', ...
         char(xds_morn.unit_names(N_morn))), 'FontSize', (title_font_size + 5));
     % Set the common x-label
     common_x_label = axes(amp_timeline, 'visible', 'off');
@@ -308,29 +310,9 @@ if isequal(Plot_Figs, 1)
     xlabel(common_x_label, 'Time (min.)', 'FontSize', label_font_size);
     common_x_label.Position(2) = common_x_label.Position(2) + 0.5;
 
-end
+    %% Save the file if selected
+    Save_Figs(Fig_Title, Save_File)
 
-%% Figure Saving
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        fig_info = get(gca,'title');
-        fig_title = get(fig_info, 'string');
-        if isempty(fig_title)
-            fig_info = sgt;
-            fig_title = get(fig_info, 'string');
-        end
-        fig_title = strrep(fig_title, ':', '');
-        fig_title = strrep(fig_title, 'vs.', 'vs');
-        fig_title = strrep(fig_title, 'mg.', 'mg');
-        fig_title = strrep(fig_title, 'kg.', 'kg');
-        fig_title = strrep(fig_title, '.', '_');
-        fig_title = strrep(fig_title, '/', '_');
-        %title '';
-        saveas(gcf, fullfile(save_dir, char(fig_title)), Save_Figs) 
-        close gcf
-    end
 end
-
 
 

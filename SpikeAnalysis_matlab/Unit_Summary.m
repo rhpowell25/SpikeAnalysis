@@ -1,4 +1,4 @@
-function Unit_Summary(xds_morn, xds_noon, unit_name, Save_Figs)
+function Unit_Summary(xds_morn, xds_noon, unit_name, Save_File)
 
 %% Find the unit of interest
 [N] = Find_Unit(xds_morn, unit_name);
@@ -26,8 +26,8 @@ unit_sum_fig.Position = [200 50 figure_width figure_height];
 hold on
 
 % Set the common title
-fig_title = strcat(char(xds_morn.unit_names(N)), {' '}, '- Unit Summary');
-sgtitle(fig_title, 'FontSize', (title_font_size + 5));
+Fig_Title = strcat(char(xds_morn.unit_names(N)), {' '}, '- Unit Summary');
+sgtitle(Fig_Title, 'FontSize', (title_font_size + 5));
 
 %% Plot random 100 morning waverforms
 
@@ -536,26 +536,7 @@ fig_handle.XLabel.Visible='on';
 xlabel(fig_handle,'Time (min.)', 'fontsize', 20);
 fig_handle.Position = [0.13 0.08 0.775 0.815];
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for ii = 1:length(findobj('type','figure'))
-        fig_title = strrep(fig_title, ':', '');
-        fig_title = strrep(fig_title, 'vs.', 'vs');
-        fig_title = strrep(fig_title, 'mg.', 'mg');
-        fig_title = strrep(fig_title, 'kg.', 'kg');
-        fig_title = strrep(fig_title, '.', '_');
-        fig_title = strrep(fig_title, '/', '_');
-        %title '';
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(fig_title)), 'fig')
-        else
-            saveas(gcf, fullfile(save_dir, char(fig_title)), Save_Figs)
-        end
-        close gcf
-    end
-end
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
 
 

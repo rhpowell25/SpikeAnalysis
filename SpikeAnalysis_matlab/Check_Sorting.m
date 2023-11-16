@@ -1,4 +1,4 @@
-function Check_Sorting(xds_sorted, xds_unsorted, unit_name, Save_Figs)
+function Check_Sorting(xds_sorted, xds_unsorted, unit_name, Save_File)
 
 %% What do you want plotted?
 % 'PC1', 'PC2', 'PC3', 'Nonlin', or 'Time'
@@ -102,12 +102,13 @@ set(gca,'Color','k')
 
 % Set the common title
 if strcmp(Sort_Check, 'Sort')
-    fig_title = strcat('Spike Sorting -', {' '}, char(xds_unsorted.unit_names(N)));
+    Fig_Title = strcat('Spike Sorting -', {' '}, char(xds_unsorted.unit_names(N)));
 elseif strcmp(Sort_Check, 'K_Means')
-    fig_title = strcat('K-Means Clusters -', {' '}, char(xds_unsorted.unit_names(N)));
+    Fig_Title = strcat('K-Means Clusters -', {' '}, char(xds_unsorted.unit_names(N)));
 end
-save_title = strcat(Date, '_', Monkey, '_', fig_title);
-sgtitle(fig_title, 'FontSize', (title_font_size + 5));
+sgtitle(Fig_Title, 'FontSize', (title_font_size + 5));
+Fig_Title = strcat(Date, '_', Monkey, '_', Fig_Title);
+
 
 % Axis Labels
 ylabel(y_label, 'FontSize', label_font_size)
@@ -184,20 +185,5 @@ if strcmp(Sort_Check, 'Sort')
     end
 end
 
-%% Define the save directory & save the figures
-if ~isequal(Save_Figs, 0)
-    save_dir = 'C:\Users\rhpow\Desktop\';
-    for uu = numel(findobj('type','figure')):-1:1
-        set(gcf, 'InvertHardcopy', 'off');
-        if ~strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), Save_Figs)
-        end
-        if strcmp(Save_Figs, 'All')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'png')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'pdf')
-            saveas(gcf, fullfile(save_dir, char(save_title)), 'fig')
-        end
-        close gcf
-    end
-end
-
+%% Save the file if selected
+Save_Figs(Fig_Title, Save_File)
