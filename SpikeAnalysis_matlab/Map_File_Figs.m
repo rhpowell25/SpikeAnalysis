@@ -45,13 +45,12 @@ map_width = max(unit_columns);
 
 %% Plot the map file
 
-% Figure size
-figure_width = 600;
-figure_height = 600;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 % Generate the figure
 map_figure = figure;
-map_figure.Position = [150 150 figure_width figure_height];
+map_figure.Position = [150 150 Plot_Params.fig_size Plot_Params.fig_size];
 
 % Set the title
 Fig_Title = strcat(Date, '_', Monkey, '_', Plot_Specs);
@@ -185,10 +184,8 @@ for uu = 1:length(unit_names)
                 'MarkerFaceColor', plot_color);
         end
 
-        if strcmp(Plot_Specs, 'Colormap')
-            
+        if strcmp(Plot_Specs, 'Colormap')        
             set(gca,'Color', color_map(norm_crossings(p), :))
-
             % Annotation of the peak firing rate
             if ~isnan(peak_firing_rate(p))
                 firing_rate_string = mat2str(round(peak_firing_rate(p), 1));
@@ -197,9 +194,7 @@ for uu = 1:length(unit_names)
                     'horizontalalignment', 'center', 'verticalalignment', 'middle');
                 set(ann_fire_rate, 'Color', [1, 1, 1])
             end
-
         end
-
     end
 
     % Only label every other tick

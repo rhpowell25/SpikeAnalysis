@@ -43,11 +43,8 @@ waveforms_noon = xds_noon.spike_waveforms{N_noon};
 spike_times_morn = xds_morn.spikes{N_morn};
 spike_times_noon = xds_noon.spikes{N_noon};
 
-% Font specifications
-label_font_size = 18;
-title_font_size = 15;
-legend_font_size = 15;
-font_name = 'Arial';
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 %% Calculating the means and standard deviations
 
@@ -115,9 +112,9 @@ if isequal(Plot_Figs, 1)
     histogram(noon_perspike_amp, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
     Fig_Title = sprintf('Average Amplitude Histogram - %s', ... 
         char(xds_morn.unit_names(N_morn)));
-    title(Fig_Title, 'FontSize', title_font_size)
-    xlabel('Mean Waveform Amplitude', 'FontSize', label_font_size)
-    ylabel('Counts', 'FontSize', label_font_size)
+    title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
+    xlabel('Mean Waveform Amplitude', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
 
     % Collect the current axis limits
     y_limits = ylim;
@@ -128,7 +125,7 @@ if isequal(Plot_Figs, 1)
     dummy_purple = scatter(-1.5, -1.5, 's', 'filled', 'Color', [.5 0 .5]);
     % Legend
     legend([dummy_yellow, dummy_purple], ... 
-        {'Morning', 'Afternoon'}, 'FontSize', legend_font_size, 'Location', 'northeast')
+        {'Morning', 'Afternoon'}, 'FontSize', Plot_Params.legend_size, 'Location', 'northeast')
     legend boxoff
 
     % Reset the axis limits
@@ -143,8 +140,8 @@ if isequal(Plot_Figs, 1)
             ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
                 'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
                 'EdgeColor','none', 'horizontalalignment', 'center');
-            ann_legend.FontSize = legend_font_size;
-            ann_legend.FontName = font_name;
+            ann_legend.FontSize = Plot_Params.legend_size;
+            ann_legend.FontName = Plot_Params.font_name;
         end
 
         if isequal(round(wave_p_val, 3), 0)
@@ -154,8 +151,8 @@ if isequal(Plot_Figs, 1)
             ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
                 'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
                 'EdgeColor','none', 'horizontalalignment', 'center');
-            ann_legend.FontSize = legend_font_size;
-            ann_legend.FontName = font_name;
+            ann_legend.FontSize = Plot_Params.legend_size;
+            ann_legend.FontName = Plot_Params.font_name;
         end
 
     % Only label every other tick
@@ -171,7 +168,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Calculate the per-spike waveform amplitude
 
@@ -230,13 +227,13 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     % Bring the morning plot to the right
     set(morn_amp_plot, 'Units', 'normalized')
     set(morn_amp_plot, 'Position', [0.1, 0.65, 0.4, 0.2]);
 
-    xlabel('Morning', 'FontSize', label_font_size)
+    xlabel('Morning', 'FontSize', Plot_Params.label_font_size)
 
     % Afternoon
     noon_amp_plot = subplot(122); % (Top Right Plot)
@@ -270,13 +267,13 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     % Bring the afternoon plot to the left
     set(noon_amp_plot, 'Units', 'normalized')
     set(noon_amp_plot, 'Position', [0.525, 0.65, .4, .2]);
     
-    xlabel('Afternoon', 'FontSize', label_font_size)
+    xlabel('Afternoon', 'FontSize', Plot_Params.label_font_size)
 
     % Annotation of the p_value
     if round(wave_p_val, 3) > 0
@@ -286,8 +283,8 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
 
     if isequal(round(wave_p_val, 3), 0)
@@ -297,17 +294,17 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
             'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
             'EdgeColor','none', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
 
     % Set the common title
     sgtitle(sprintf('Mean Waveform Amplitude - %s', ...
-        char(xds_morn.unit_names(N_morn))), 'FontSize', (title_font_size + 5));
+        char(xds_morn.unit_names(N_morn))), 'FontSize', (Plot_Params.title_font_size + 5));
     % Set the common x-label
     common_x_label = axes(amp_timeline, 'visible', 'off');
     common_x_label.XLabel.Visible = 'on';
-    xlabel(common_x_label, 'Time (min.)', 'FontSize', label_font_size);
+    xlabel(common_x_label, 'Time (min.)', 'FontSize', Plot_Params.label_font_size);
     common_x_label.Position(2) = common_x_label.Position(2) + 0.5;
 
     %% Save the file if selected

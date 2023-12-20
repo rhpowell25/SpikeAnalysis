@@ -83,18 +83,13 @@ elseif strcmp(y_plot, 'Time')
     y_label = 'Time';
 end
 
-% Font specifications
-label_font_size = 20;
-title_font_size = 15;
-% Figure size
-figure_width = 800;
-figure_height = 600;
-
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 marker_size = 2;
 
 % Generate the figure
 sort_figure = figure;
-sort_figure.Position = [150 150 figure_width figure_height];
+sort_figure.Position = [150 150 Plot_Params.fig_size Plot_Params.fig_size];
 hold on
 
 % Set the background as black
@@ -106,13 +101,13 @@ if strcmp(Sort_Check, 'Sort')
 elseif strcmp(Sort_Check, 'K_Means')
     Fig_Title = strcat('K-Means Clusters -', {' '}, char(xds_unsorted.unit_names(N)));
 end
-sgtitle(Fig_Title, 'FontSize', (title_font_size + 5));
+sgtitle(Fig_Title, 'FontSize', (Plot_Params.title_font_size + 5));
 Fig_Title = strcat(Date, '_', Monkey, '_', Fig_Title);
 
 
 % Axis Labels
-ylabel(y_label, 'FontSize', label_font_size)
-xlabel(x_label, 'FontSize', label_font_size)
+ylabel(y_label, 'FontSize', Plot_Params.label_font_size)
+xlabel(x_label, 'FontSize', Plot_Params.label_font_size)
 
 % Only label every other tick
 figure_axes = gca;

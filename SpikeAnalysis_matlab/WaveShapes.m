@@ -36,13 +36,8 @@ unit_waveforms = xds.spike_waveforms{N};
 % Extracting the spike times of the designated unit
 spike_times = xds.spikes{N};
 
-% Font specifications
-label_font_size = 18;
-title_font_size = 15;
-legend_font_size = 15;
-font_name = 'Arial';
-figure_width = 550;
-figure_height = 300;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 %% Calculating the means & standard deviations
 
@@ -119,7 +114,7 @@ if isequal(Plot_Figs, 1)
     rand_waves = unit_waveforms(rand_wave_idx,:);
 
     rand_figure = figure;
-    rand_figure.Position = [300 300 figure_width figure_height];
+    rand_figure.Position = [300 300 Plot_Params.fig_size Plot_Params.fig_size];
     hold on
     plot(spike_time, rand_waves', 'k')
 
@@ -131,11 +126,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         rand_title = strcat(rand_title, {' '}, '(Afternoon)');
     end
-    title(rand_title, 'FontSize', title_font_size)
+    title(rand_title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis Labels
-    xlabel('Time (ms)', 'FontSize', label_font_size)
-    ylabel('Amplitude (µV)', 'FontSize', label_font_size)
+    xlabel('Time (ms)', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Amplitude (µV)', 'FontSize', Plot_Params.label_font_size)
 
     % Annotation of the n-count
     legend_dims = [0.555 0.425 0.44 0.44];
@@ -144,8 +139,8 @@ if isequal(Plot_Figs, 1)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
         'FitBoxToText', 'on', 'verticalalignment', 'top', ...
         'EdgeColor','none', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 
     % Only label every other tick
     figure_axes = gca;
@@ -160,12 +155,12 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname',font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Plotting the mean and standard deviations
 
     avg_figure = figure;
-    avg_figure.Position = [300 300 figure_width figure_height];
+    avg_figure.Position = [300 300 Plot_Params.fig_size Plot_Params.fig_size];
     hold on
     plot(spike_time, mean_amp,'k')
     plot(spike_time, mean_amp + standard_dev,'r')
@@ -179,11 +174,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         Fig_Title = strcat(Fig_Title, {' '}, '(Afternoon)');
     end
-    title(Fig_Title, 'FontSize', title_font_size)
+    title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis Labels
-    xlabel('Time (ms)', 'FontSize', label_font_size)
-    ylabel('Amplitude (µV)', 'FontSize', label_font_size)
+    xlabel('Time (ms)', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Amplitude (µV)', 'FontSize', Plot_Params.label_font_size)
     
     % Only label every other tick
     figure_axes = gca;
@@ -198,7 +193,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Plot the histogram
     figure
@@ -213,11 +208,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         hist_title = strcat(hist_title, {' '}, '(Afternoon)');
     end
-    title(hist_title, 'FontSize', title_font_size)
+    title(hist_title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis Labels
-    xlabel('Mean Waveform Amplitude', 'FontSize', label_font_size)
-    ylabel('Counts', 'FontSize', label_font_size)
+    xlabel('Mean Waveform Amplitude', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
 
     % Collect the current axis limits
     y_limits = ylim;
@@ -240,7 +235,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Calculate the per-spike waveform amplitude
 
@@ -272,7 +267,7 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         mean_mean_title = strcat(mean_mean_title, {' '}, '(Afternoon)');
     end
-    title(mean_mean_title, 'FontSize', title_font_size)
+    title(mean_mean_title, 'FontSize', Plot_Params.title_font_size)
 
     % Line indicating the mean
     line([0 max(spike_min)],[amp_mean_mean amp_mean_mean], ... 
@@ -300,7 +295,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Save the file if selected
     Save_Figs(Fig_Title, Save_File)

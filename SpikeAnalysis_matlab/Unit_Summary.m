@@ -5,13 +5,8 @@ function Unit_Summary(xds_morn, xds_noon, unit_name, Save_File)
 
 %% Define the figure
 
-% Font specifications
-label_font_size = 12;
-title_font_size = 15;
-legend_font_size = 8;
-font_name = 'Arial';
-figure_width = 900;
-figure_height = 700;
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 axis_expansion = 75;
 
@@ -22,12 +17,12 @@ first_column_width = 0.09;
 third_column_width = 0.65;
 
 unit_sum_fig = figure;
-unit_sum_fig.Position = [200 50 figure_width figure_height];
+unit_sum_fig.Position = [200 50 Plot_Params.fig_size Plot_Params.fig_size];
 hold on
 
 % Set the common title
 Fig_Title = strcat(char(xds_morn.unit_names(N)), {' '}, '- Unit Summary');
-sgtitle(Fig_Title, 'FontSize', (title_font_size + 5));
+sgtitle(Fig_Title, 'FontSize', (Plot_Params.title_font_size + 5));
 
 %% Plot random 100 morning waverforms
 
@@ -42,10 +37,10 @@ hold on
 plot(morn_rand_waves', 'k')
 
 % Set the title
-title('Random Waveforms', 'FontSize', title_font_size)
+title('Random Waveforms', 'FontSize', Plot_Params.title_font_size)
 
 % Axis Labels
-ylabel({'Morning'; 'Amplitude (µV)'}, 'FontSize', label_font_size)
+ylabel({'Morning'; 'Amplitude (µV)'}, 'FontSize', Plot_Params.label_font_size)
 
 % Annotation of the n-count
 legend_dims = [first_column_width first_row_height 0.44 0.44];
@@ -54,8 +49,8 @@ legend_string = {char(n_count_string)};
 ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
     'FitBoxToText', 'on', 'verticalalignment', 'top', ...
     'EdgeColor','none', 'horizontalalignment', 'center');
-ann_legend.FontSize = legend_font_size;
-ann_legend.FontName = font_name;
+ann_legend.FontSize = Plot_Params.legend_size;
+ann_legend.FontName = Plot_Params.font_name;
 
 % Collect the current axis limits
 y_limits = ylim;
@@ -78,7 +73,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname',font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Plot random 100 afternoon waverforms
 
@@ -93,8 +88,8 @@ hold on
 plot(noon_rand_waves', 'k')
 
 % Axis Labels
-ylabel({'Afternoon'; 'Amplitude (µV)'}, 'FontSize', label_font_size)
-xlabel('Time', 'FontSize', label_font_size)
+ylabel({'Afternoon'; 'Amplitude (µV)'}, 'FontSize', Plot_Params.label_font_size)
+xlabel('Time', 'FontSize', Plot_Params.label_font_size)
 
 % Annotation of the n-count
 legend_dims = [first_column_width second_row_height 0.44 0.44];
@@ -103,8 +98,8 @@ legend_string = {char(n_count_string)};
 ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
     'FitBoxToText', 'on', 'verticalalignment', 'top', ...
     'EdgeColor','none', 'horizontalalignment', 'center');
-ann_legend.FontSize = legend_font_size;
-ann_legend.FontName = font_name;
+ann_legend.FontSize = Plot_Params.legend_size;
+ann_legend.FontName = Plot_Params.font_name;
 
 % Reset the axis limits
 xlim([x_limits(1), x_limits(2)])
@@ -123,7 +118,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname',font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Plotting the morning mean & standard deviations
 
@@ -142,7 +137,7 @@ plot(morn_amp_mean + morn_standard_dev,'r')
 plot(morn_amp_mean - morn_standard_dev,'r')
 
 % Set the title
-title('Average Waveforms', 'FontSize', title_font_size)
+title('Average Waveforms', 'FontSize', Plot_Params.title_font_size)
 
 % Reset the axis limits
 xlim([x_limits(1), x_limits(2)])
@@ -161,7 +156,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Plotting the afternoon mean & standard deviations
 
@@ -181,7 +176,7 @@ xlim([x_limits(1), x_limits(2)])
 ylim([y_limits(1) - axis_expansion, y_limits(2) + axis_expansion])
 
 % Axis Labels
-xlabel('Time', 'FontSize', label_font_size)
+xlabel('Time', 'FontSize', Plot_Params.label_font_size)
 
 % Only label every other tick
 subplot_axes = gca;
@@ -196,7 +191,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Plotting the morning histogram
 
@@ -241,13 +236,13 @@ subplot(3, 3, 3)
 hold on
 
 % Set the title
-title('Interstimulus Intervals', 'FontSize', title_font_size)
+title('Interstimulus Intervals', 'FontSize', Plot_Params.title_font_size)
 
 % Plot the histogram
 histogram(morn_ISI, ISI_edges, 'EdgeColor', 'k', 'FaceColor', [0.9290, 0.6940, 0.1250])
 
 % Axis Labels
-ylabel('Counts', 'FontSize', label_font_size)
+ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
 
 % Collect the current axis limits
 y_limits = ylim;
@@ -261,8 +256,8 @@ if isreal(morn_fract_contam)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'EdgeColor','none', ... 
         'verticalalignment', 'top', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 if ~isreal(morn_fract_contam)
     legend_dims = [third_column_width first_row_height 0.44 0.44];
@@ -271,8 +266,8 @@ if ~isreal(morn_fract_contam)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'EdgeColor','none', ... 
         'verticalalignment', 'top', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 
 % Reset the axis limits
@@ -292,7 +287,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off')
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Plotting the afternoon histogram
 
@@ -333,8 +328,8 @@ hold on
 histogram(noon_ISI, ISI_edges, 'EdgeColor', 'k', 'FaceColor', [.5 0 .5])
 
 % Axis Labels
-ylabel('Counts', 'FontSize', label_font_size)
-xlabel('ISI (ms)', 'FontSize', label_font_size)
+ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
+xlabel('ISI (ms)', 'FontSize', Plot_Params.label_font_size)
 
 % Collect the current axis limits
 y_limits = ylim;
@@ -348,8 +343,8 @@ if isreal(noon_fract_contam)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'EdgeColor','none', ... 
         'verticalalignment', 'top', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 if ~isreal(noon_fract_contam)
     legend_dims = [third_column_width second_row_height 0.44 0.44];
@@ -358,8 +353,8 @@ if ~isreal(noon_fract_contam)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'EdgeColor','none', ... 
         'verticalalignment', 'top', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 
 % Reset the axis limits
@@ -379,7 +374,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off')
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 %% Calculate the per-spike nonlinear energy
 
@@ -465,9 +460,9 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
-xlabel('Morning', 'FontSize', label_font_size + 5)
+xlabel('Morning', 'FontSize', Plot_Params.label_font_size + 5)
 
 subplot(3, 3, [8.5 9])
 hold on
@@ -488,7 +483,7 @@ line([min(spike_min_noon) max(spike_min_noon)], [nonlin_noon - std_nonlin_noon, 
 ylim([min_YLim, max_YLim])
 xlim([0, noon_xmax + 0.1])
 
-xlabel('Afternoon', 'FontSize', label_font_size + 5)
+xlabel('Afternoon', 'FontSize', Plot_Params.label_font_size + 5)
 
 % Set the ticks for afternoon
 subplot_axes = gca;
@@ -505,7 +500,7 @@ set(subplot_axes,'TickDir','out');
 % Remove the top and right tick marks
 set(subplot_axes,'box','off');
 % Set The Font
-set(subplot_axes,'fontname', font_name);
+set(subplot_axes,'fontname', Plot_Params.font_name);
 
 % Annotation of the p_value
 if round(nonlin_p_val, 3) > 0
@@ -515,8 +510,8 @@ if round(nonlin_p_val, 3) > 0
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
         'EdgeColor','none', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 
 if isequal(round(nonlin_p_val, 3), 0)
@@ -526,8 +521,8 @@ if isequal(round(nonlin_p_val, 3), 0)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
         'FitBoxToText', 'on', 'verticalalignment', 'top', ... 
         'EdgeColor','none', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 end
 
 % Set the common x label

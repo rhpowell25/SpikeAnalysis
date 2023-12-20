@@ -35,11 +35,8 @@ nonlin_waveforms = xds.nonlin_waveforms{N};
 % Extracting the spike times of the designated unit
 spike_times = xds.spikes{N};
 
-% Font specifications
-label_font_size = 18;
-title_font_size = 15;
-legend_font_size = 15;
-font_name = 'Arial';
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 %% Calculating the means & standard deviations
 
@@ -101,11 +98,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         Fig_Title = strcat(Fig_Title, {' '}, '(Afternoon)');
     end
-    title(Fig_Title, 'FontSize', title_font_size)
+    title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis labels
-    xlabel('Time', 'FontSize', label_font_size)
-    ylabel('µV^2', 'FontSize', label_font_size)
+    xlabel('Time', 'FontSize', Plot_Params.label_font_size)
+    ylabel('µV^2', 'FontSize', Plot_Params.label_font_size)
 
     % Annotation of the n-count
     legend_dims = [0.555 0.425 0.44 0.44];
@@ -114,8 +111,8 @@ if isequal(Plot_Figs, 1)
     ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ...
         'FitBoxToText', 'on', 'verticalalignment', 'top', ...
         'EdgeColor','none', 'horizontalalignment', 'center');
-    ann_legend.FontSize = legend_font_size;
-    ann_legend.FontName = font_name;
+    ann_legend.FontSize = Plot_Params.legend_size;
+    ann_legend.FontName = Plot_Params.font_name;
 
     % Only label every other tick
     figure_axes = gca;
@@ -130,7 +127,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Plotting the mean & standard deviations
 
@@ -150,11 +147,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         avg_title = strcat(avg_title, {' '}, '(Afternoon)');
     end
-    title(avg_title, 'FontSize', title_font_size)
+    title(avg_title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis Labels
-    xlabel('Time', 'FontSize', label_font_size)
-    ylabel('µV^2', 'FontSize', label_font_size)
+    xlabel('Time', 'FontSize', Plot_Params.label_font_size)
+    ylabel('µV^2', 'FontSize', Plot_Params.label_font_size)
 
     % Only label every other tick
     figure_axes = gca;
@@ -169,7 +166,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Plot the histogram
     figure
@@ -184,11 +181,11 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         hist_title = strcat(hist_title, {' '}, '(Afternoon)');
     end
-    title(hist_title, 'FontSize', title_font_size)
+    title(hist_title, 'FontSize', Plot_Params.title_font_size)
 
     % Axis Labels
-    xlabel('Mean Nonlinear Energy', 'FontSize', label_font_size)
-    ylabel('Counts', 'FontSize', label_font_size)
+    xlabel('Mean Nonlinear Energy', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
 
     % Collect the current axis limits
     y_limits = ylim;
@@ -211,7 +208,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Calculate the per-spike nonlinear energy
 
@@ -243,7 +240,7 @@ if isequal(Plot_Figs, 1)
     if contains(xds.meta.rawFileName, 'Post')
         mean_mean_title = strcat(mean_mean_title, {' '}, '(Afternoon)');
     end
-    title(mean_mean_title, 'FontSize', title_font_size)
+    title(mean_mean_title, 'FontSize', Plot_Params.title_font_size)
 
     % Lines indicating the morning mean
     line([0 max(spike_min)],[nonlin_mean_mean nonlin_mean_mean], ... 
@@ -275,12 +272,12 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off');
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     % Set the x-label
     common_x_label = axes(nonlin_timeline, 'visible', 'off');
     common_x_label.XLabel.Visible = 'on';
-    xlabel(common_x_label, 'Time (min.)', 'FontSize', label_font_size);
+    xlabel(common_x_label, 'Time (min.)', 'FontSize', Plot_Params.label_font_size);
     common_x_label.Position(2) = common_x_label.Position(2) + 0.5;
 
     %% Save the file if selected

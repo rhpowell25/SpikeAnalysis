@@ -32,11 +32,8 @@ end
 % Define the output variables
 ISI_modes = zeros(1,3);
 
- % Font specifications
-label_font_size = 20;
-title_font_size = 15;
-legend_font_size = 15;
-font_name = 'Arial';
+% Font & plotting specifications
+[Plot_Params] = Plot_Parameters;
 
 %% Some variable extraction & definitions
 
@@ -122,9 +119,9 @@ if isequal(Plot_Figs, 1)
     % Set the title
     Fig_Title = sprintf('Interstimulus Intervals - %s (Merged)', ... 
         char(xds_morn.unit_names(N_morn)));
-    title(Fig_Title, 'FontSize', title_font_size)
-    xlabel('ISI (mSec)', 'FontSize', label_font_size)
-    ylabel('Counts', 'FontSize', label_font_size)
+    title(Fig_Title, 'FontSize', Plot_Params.title_font_size)
+    xlabel('ISI (mSec)', 'FontSize', Plot_Params.label_font_size)
+    ylabel('Counts', 'FontSize', Plot_Params.label_font_size)
 
     % Collect the current axis limits
     y_limits = ylim;
@@ -138,8 +135,8 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
             'FitBoxToText', 'on', 'EdgeColor','none', ... 
             'verticalalignment', 'top', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
     if ~isreal(fract_contam)
         legend_dims = [0.52 0.35 0.44 0.44];
@@ -148,8 +145,8 @@ if isequal(Plot_Figs, 1)
         ann_legend = annotation('textbox', legend_dims, 'String', legend_string, ... 
             'FitBoxToText', 'on', 'EdgeColor','none', ... 
             'verticalalignment', 'top', 'horizontalalignment', 'center');
-        ann_legend.FontSize = legend_font_size;
-        ann_legend.FontName = font_name;
+        ann_legend.FontSize = Plot_Params.legend_size;
+        ann_legend.FontName = Plot_Params.font_name;
     end
 
     % Plot dummy points for the legend
@@ -157,7 +154,7 @@ if isequal(Plot_Figs, 1)
     dummy_purple = scatter(-1.5, -1.5, 's', 'filled', 'Color', [.5 0 .5]);
     % Legend
     legend([dummy_yellow, dummy_purple], ... 
-        {'Morning', 'Afternoon'}, 'FontSize', legend_font_size, 'Location', 'northeast')
+        {'Morning', 'Afternoon'}, 'FontSize', Plot_Params.legend_size, 'Location', 'northeast')
     legend boxoff
 
     % Reset the axis limits
@@ -177,7 +174,7 @@ if isequal(Plot_Figs, 1)
     % Remove the top and right tick marks
     set(figure_axes,'box','off')
     % Set The Font
-    set(figure_axes,'fontname', font_name);
+    set(figure_axes,'fontname', Plot_Params.font_name);
 
     %% Save the file if selected
     Save_Figs(Fig_Title, Save_File)
