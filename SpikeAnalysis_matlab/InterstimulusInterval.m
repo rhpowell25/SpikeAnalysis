@@ -27,7 +27,7 @@ end
 %% Basic settings, some variable extractions, & definitions
 
 % Font & plotting specifications
-[Plot_Params] = Plot_Parameters;
+[Plot_Params] = Plot_Specs;
 
 %% Some variable extraction & definitions
 

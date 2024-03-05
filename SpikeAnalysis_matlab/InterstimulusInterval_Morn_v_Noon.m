@@ -33,7 +33,7 @@ end
 ISI_modes = zeros(1,3);
 
 % Font & plotting specifications
-[Plot_Params] = Plot_Parameters;
+[Plot_Params] = Plot_Specs;
 
 %% Some variable extraction & definitions
 

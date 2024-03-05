@@ -42,7 +42,7 @@ spike_times_morn = xds_morn.spikes{N_morn};
 spike_times_noon = xds_noon.spikes{N_noon};
 
 % Font & plotting specifications
-[Plot_Params] = Plot_Parameters;
+[Plot_Params] = Plot_Specs;
 
 %% Calculating the means & standard deviations
 
